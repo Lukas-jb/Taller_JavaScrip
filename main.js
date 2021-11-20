@@ -35,6 +35,13 @@
         board.ball = this;
         this.kind = "circle";
     }
+    self.Ball.prototype = {
+		move: function () {
+			this.x += (this.speed_x * this.direction);
+			this.y += (this.speed_y);
+            
+        }
+    }
 })();
 
 
@@ -89,7 +96,7 @@
                 this.clean(); // Se limpia el canvas
                 this.draw(); // Se dibuja el tablero
                 //this.check_collisions(); // Se verifica las colisiones
-                //this.board.ball.move(); // Se mueve la pelota
+                this.board.ball.move(); // Se mueve la pelota
             }
         }
     }
