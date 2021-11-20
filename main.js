@@ -12,14 +12,14 @@
     }
     self.Board.prototype = {
         get elements() {
-            var elements = this.bars.map(function (bar) { return bar; });                 
+            var elements = this.bars.map(function (bar) { return bar; });
             elements.push(this.ball);
             return elements;
         }
     }
 })();
 
-(function () {
+(function () {//crear pelota
     self.Ball = function (x, y, radius, board) {
         this.x = x;
         this.y = y;
@@ -36,15 +36,54 @@
         this.kind = "circle";
     }
     self.Ball.prototype = {
-		move: function () {
-			this.x += (this.speed_x * this.direction);
-			this.y += (this.speed_y);
+        move: function () {
+            this.x += (this.speed_x * this.direction);
+            this.y += (this.speed_y);
 
+            // Collision con paredes verticales
+            if (this.x <= 10) {
+                this.speed_x = -this.speed_x;
+                this.bounce_angle = -this.bounce_angle;
+            }
+            if (this.x >= 790) {
+                this.speed_x = -this.speed_x;
+                this.bounce_angle = -this.bounce_angle;
+            }
+
+            // Collision con paredes horizontales
+            if (this.y <= 10) {
+                this.speed_y = -this.speed_y;
+                this.bounce_angle = -this.bounce_angle;
+            }
+            if (this.y >= 390) {
+                this.speed_y = -this.speed_y;
+                this.bounce_angle = -this.bounce_angle;
+            }
+
+        }, get width() {
+            return this.radius * 2;
+        },
+        get height() {
+            return this.radius * 2;
+        },
+        collision: function (bar) {
+            // Reacciona a la colisión con una barra que recibe como parametro
+            var relative_intersect_y = (bar.y + (bar.height / 2)) - this.y;
+
+            var normalized_intersect_y = relative_intersect_y / (bar.height / 2);
+
+            this.bounce_angle = normalized_intersect_y * this.max_bounce_angle;
+            this.speed_y = this.speed * -Math.sin(this.bounce_angle);
+            this.speed_x = this.speed * Math.cos(this.bounce_angle);
+
+            if (this.x > (this.board.width / 2)) this.direction = -1;
+            else this.direction = 1;
         }
     }
+
 })();
 
-
+//medicas del canvas
 (function () {
     self.Bar = function (x, y, width, height, board) {
         this.x = x;
@@ -69,14 +108,14 @@
     }
 })();
 
-(function () {
+(function () {//Dibuja el tablero
     self.BoardView = function (canvas, board) {
         this.canvas = canvas;
         this.canvas.width = board.width;
         this.canvas.height = board.height;
         this.board = board; // Se asigna el tablero
         this.ctx = this.canvas.getContext('2d'); // Obtiene el contexto del canvas
-        //this.canvas.style.background = '#955227';
+        this.canvas.style.background = '#955227';
     }
 
     self.BoardView.prototype = {
@@ -86,43 +125,62 @@
         draw: function () {
             for (var i = this.board.elements.length - 1; i >= 0; i--) { // Se recorre el elemento para dibujarlo
                 var el = this.board.elements[i];
-                //this.ctx.fillStyle = "white";
+                this.ctx.fillStyle = "Black";
 
                 draw(this.ctx, el);
             }
         },
         check_collisions: function () {
-			for (var i = this.board.bars.length - 1; i >= 0; i--) {
-				var bar = this.board.bars[i];
-				if (hit(bar, this.board.ball)) {
-					this.board.ball.collision(bar);
-				}
-			}
-		},
+            for (var i = this.board.bars.length - 1; i >= 0; i--) {
+                var bar = this.board.bars[i];
+                if (hit(bar, this.board.ball)) {
+                    this.board.ball.collision(bar);
+                }
+            }
+        },
         play: function () {
             if (!this.board.playing) {
                 this.clean(); // Se limpia el canvas
                 this.draw(); // Se dibuja el tablero
-                //this.check_collisions(); // Se verifica las colisiones
+                this.check_collisions(); // Se verifica las colisiones
                 this.board.ball.move(); // Se mueve la pelota
             }
         }
     }
+    function hit(a, b) {
+        //Revisa si a colisiona con b
+        var hit = false;
+        //Colsiones horizontales
+        if (b.x + b.width >= a.x && b.x < a.x + a.width) {
+            //Colisiones verticales
+            if (b.y + b.height >= a.y && b.y < a.y + a.height)
+                hit = true;
+        }
+        //Colisión de a con b
+        if (b.x <= a.x && b.x + b.width >= a.x + a.width) {
+            if (b.y <= a.y && b.y + b.height >= a.y + a.height)
+                hit = true;
+        }
+        //Colisión b con a
+        if (a.x <= b.x && a.x + a.width >= b.x + b.width) {
+            if (a.y <= b.y && a.y + a.height >= b.y + b.height)
+                hit = true;
+        }
+        return hit;
+    }
 
     // Se encarga de dibujar el element elegido
     function draw(ctx, element) {
-
-
         switch (element.kind) {
             case 'rectangle':
                 ctx.fillRect(element.x, element.y, element.width, element.height);
                 break;
             case 'circle':
-            	ctx.beginPath();
-            	ctx.arc(element.x, element.y, element.radius, 0, 7);
-            	ctx.fill();
-            	ctx.closePath();
-            	break;
+                ctx.beginPath();
+                ctx.arc(element.x, element.y, element.radius, 0, 7);
+                ctx.fill();
+                ctx.closePath();
+                break;
         }
 
 
@@ -181,6 +239,5 @@ window.requestAnimationFrame(controller);
 function controller() {
     board_view.play();
     window.requestAnimationFrame(controller);
-    board_view.clean();
     board_view.draw();
 }
