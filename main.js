@@ -28,16 +28,18 @@
 		this.board = board;
 		this.board.bars.push(this); // Se agrega la barra al tablero
 		this.kind = 'rectangle'; // Se define el tipo de elemento
-		
+		this.speed = 10; // Se define la velocidad de la barra
 	}
 	self.Bar.prototype = {
 		down: function () {
-          this.y +=speed;                                                                //pendiente
+            this.y += this.speed;                                                                
 		},
-		up: function () {                                                               //pendiente
-			this.y-speed;
+		up: function () {                                                               
+		    this.y -= this.speed;
 		},
-		
+		toString: function () {
+			return "x: " + this.x + " y: " + this.y;
+		}
 	}
 })();
 
@@ -56,7 +58,7 @@
         draw: function () {
 			for (var i = this.board.elements.length - 1; i >= 0; i--) { // Se recorre el elemento para dibujarlo
 				var el = this.board.elements[i];
-				
+				//this.ctx.fillStyle = "white";
 
 				draw(this.ctx, el);
 			}
@@ -72,7 +74,12 @@
 			case 'rectangle':
 				ctx.fillRect(element.x, element.y, element.width, element.height);
 				break;
-			
+			//case 'circle':
+			//	ctx.beginPath();
+			//	ctx.arc(element.x, element.y, element.radius, 0, 7);
+			//	ctx.fill();
+			//	ctx.closePath();
+			//	break;
 		}   
         }
 		
@@ -80,17 +87,50 @@
 
 })();
 
+var board = new Board(800, 400); 
+var bar = new Bar(0, 150, 20, 100, board); // Se crea la barra1// x, y, width, height
+var bar_2 = new Bar(780, 150, 20, 100, board); // Se crea la barra2
+var canvas = document.getElementById('canvas'); // Se obtiene el canvas desde el DOM
+var board_view = new BoardView(canvas, board); // Se crea el tablero
+        //var ball = new Ball(400, 200, 10, board); // Se crea la pelota 
 
-window.addEventListener('load', main)
+document.addEventListener("keydown", function (ev) {
+	if (ev.keyCode == 38) {
+		ev.preventDefault();
+		if (bar_2.y >= 10) {
+			bar_2.up(); // Se mueve la barra hacia arriba
+		}
+	}
+	else if (ev.keyCode == 40) {
+		ev.preventDefault();
+		if (bar_2.y <= 290) {
+			bar_2.down(); // Se mueve la barra hacia abajo
+		}
+	}
+    else if (ev.keyCode == 87) {
+		//W
+		ev.preventDefault();
+		if (bar.y >= 10) {
+			bar.up(); // Se mueve la segunda barra hacia arriba
+		}
+	}
+	else if (ev.keyCode == 83) {
+		//S
+		ev.preventDefault();
+		if (bar.y <= 290) {
+			bar.down(); // Se mueve la segunda barra hacia abajo
+		}
+	} else if (ev.keyCode == 32) {
+		ev.preventDefault();
+		board.playing = !board.playing;
+	}
+    console.log(""+bar);
+});
+
+self.addEventListener('load', main)
 
     function main (){
-        var board = new Board(800, 400); 
-        // x, y, width, height
-        var bar = new Bar(0, 150, 20, 100, board); // Se crea la barra1
-        var bar_2 = new Bar(780, 150, 20, 100, board); // Se crea la barra2
-        var canvas = document.getElementById('canvas'); // Se obtiene el canvas desde el DOM
-        var board_view = new BoardView(canvas, board); // Se crea el tablero
-        //var ball = new Ball(400, 200, 10, board); // Se crea la pelota 
-        console.log(Board);
+        
+        console.log(Board);//----
         board_view.draw();
     }
