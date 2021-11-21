@@ -115,7 +115,7 @@
         this.canvas.height = board.height;
         this.board = board; // Se asigna el tablero
         this.ctx = this.canvas.getContext('2d'); // Obtiene el contexto del canvas
-        this.canvas.style.background = '#955227';
+        
     }
 
     self.BoardView.prototype = {
